@@ -403,7 +403,6 @@ export default function Profile() {
           </div>
         </div>
       </div>
-      </div>
 
       {/* ── Danger Zone (Admin only) ──────────────────────── */}
       {isAdmin && (
