@@ -27,7 +27,7 @@ const authLimiter = rateLimit({
 
 // ── Core Middleware ───────────────────────────────────────────────────────────
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: "https://rms-pro-gilt.vercel.app/login",
   credentials: true,
 }));
 app.use(express.json({ limit: '1mb' }));
