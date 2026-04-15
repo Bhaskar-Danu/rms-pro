@@ -60,6 +60,7 @@ app.use('/api/sales', require('./routes/sales'));
 app.use('/api/activity', require('./routes/activity'));
 app.use('/api/profile', require('./routes/profile'));
 app.use('/api/payments', require('./routes/payments'));
+app.use('/api/admin', require('./routes/admin'));
 
 // ── Health check (required by Render) ───────────────────────────────────────
 app.get('/health', (req, res) => res.json({ status: 'ok', uptime: process.uptime() }));

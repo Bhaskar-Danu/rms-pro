@@ -38,10 +38,11 @@ function getPasswordStrength(pw) {
 }
 
 export default function Profile() {
-  const { user, login } = useAuth();
+  const { user, login, isAdmin } = useAuth();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState('personal');
   const [saving, setSaving] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [form, setForm] = useState({
     username: '',
     email: '',
@@ -99,6 +100,24 @@ export default function Profile() {
       addToast(err.response?.data?.error || 'Update failed', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const clearAllData = async () => {
+    const confirmed = window.confirm(
+      '⚠️ WARNING: This will permanently delete ALL data including orders, menu items, staff, inventory, payments, reservations, feedback, and expenses.\n\nUser accounts will NOT be deleted.\n\nType OK to confirm.'
+    );
+    if (!confirmed) return;
+    const double = window.confirm('Are you absolutely sure? This cannot be undone!');
+    if (!double) return;
+    setClearing(true);
+    try {
+      await api.delete('/admin/clear-data');
+      addToast('All data cleared successfully. Starting fresh!', 'success');
+    } catch (err) {
+      addToast(err.response?.data?.error || 'Failed to clear data', 'error');
+    } finally {
+      setClearing(false);
     }
   };
 
@@ -384,6 +403,62 @@ export default function Profile() {
           </div>
         </div>
       </div>
+      </div>
+
+      {/* ── Danger Zone (Admin only) ──────────────────────── */}
+      {isAdmin && (
+        <div className="section" style={{ marginTop: 28 }}>
+          <div style={{
+            background: 'rgba(239,68,68,0.06)',
+            border: '1px solid rgba(239,68,68,0.25)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '28px 32px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap' }}>
+              <div>
+                <h3 style={{ color: 'var(--danger)', fontFamily: "'Outfit',sans-serif", fontSize: 18, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <i className="fas fa-triangle-exclamation" />
+                  Danger Zone
+                </h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.7 }}>
+                  <strong style={{ color: 'var(--text-main)' }}>Reset All Data</strong> — permanently deletes all orders, menu items,
+                  staff, inventory, payments, reservations, feedback &amp; expenses.
+                  <br />User accounts are preserved. <strong style={{ color: 'var(--danger)' }}>This cannot be undone.</strong>
+                </p>
+              </div>
+              <button
+                id="btn-clear-all-data"
+                type="button"
+                onClick={clearAllData}
+                disabled={clearing}
+                style={{
+                  padding: '12px 24px',
+                  background: 'rgba(239,68,68,0.12)',
+                  color: 'var(--danger)',
+                  border: '1px solid rgba(239,68,68,0.35)',
+                  borderRadius: 'var(--radius-md)',
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: clearing ? 'not-allowed' : 'pointer',
+                  opacity: clearing ? 0.6 : 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  whiteSpace: 'nowrap',
+                  transition: 'var(--transition)',
+                  flexShrink: 0,
+                }}
+              >
+                {clearing ? (
+                  <><span className="profile-spinner" style={{ borderColor: 'rgba(239,68,68,0.3)', borderTopColor: 'var(--danger)' }} />Clearing…</>
+                ) : (
+                  <><i className="fas fa-trash-can" />Reset All Data</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
