@@ -1,3 +1,4 @@
+// Load .env from repo root in local dev; on Render env vars are injected natively
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 const express = require('express');
@@ -26,8 +27,19 @@ const authLimiter = rateLimit({
 });
 
 // ── Core Middleware ───────────────────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://rms-pro-gilt.vercel.app',
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. Postman, curl)
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '1mb' }));
@@ -48,6 +60,12 @@ app.use('/api/sales', require('./routes/sales'));
 app.use('/api/activity', require('./routes/activity'));
 app.use('/api/profile', require('./routes/profile'));
 app.use('/api/payments', require('./routes/payments'));
+
+// ── Health check (required by Render) ───────────────────────────────────────
+app.get('/health', (req, res) => res.json({ status: 'ok', uptime: process.uptime() }));
+
+// ── Root route ───────────────────────────────────────────────────────────────
+app.get('/', (req, res) => res.json({ message: 'RMS Pro API is running 🚀' }));
 
 // ── 404 for unmatched API routes ─────────────────────────────────────────────
 app.use('/api/*', (req, res) => {

@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: rms-pro-api
+    runtime: node
+    rootDir: .
+    buildCommand: npm install
+    startCommand: node server/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        sync: false          # Set this manually in Render dashboard
+      - key: JWT_SECRET
+        sync: false          # Set this manually in Render dashboard
+      - key: CLIENT_URL
+        value: https://rms-pro-gilt.vercel.app
+      - key: RAZORPAY_KEY_ID
+        sync: false          # Optional — set if you have Razorpay keys
+      - key: RAZORPAY_KEY_SECRET
+        sync: false          # Optional
